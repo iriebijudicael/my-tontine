@@ -16,12 +16,22 @@ interface InviteMemberFormProps {
 const InviteMemberForm = ({ group, onBack }: InviteMemberFormProps) => {
   const [email, setEmail] = useState('');
   const inviteMember = useInviteMember();
-  const { data: members = [] } = useGroupMembers(group.id);
+  const { data: members = [], isLoading: membersLoading } = useGroupMembers(group.id);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email.trim()) return;
+
+    // Check if email is already invited
+    const isAlreadyMember = members.some(member => 
+      member.email?.toLowerCase() === email.toLowerCase()
+    );
+
+    if (isAlreadyMember) {
+      console.log('Email already invited to this group');
+      return;
+    }
 
     try {
       await inviteMember.mutateAsync({
@@ -33,6 +43,8 @@ const InviteMemberForm = ({ group, onBack }: InviteMemberFormProps) => {
       console.error('Error inviting member:', error);
     }
   };
+
+  const isGroupFull = members.length >= group.max_members;
 
   return (
     <div className="space-y-6">
@@ -66,18 +78,26 @@ const InviteMemberForm = ({ group, onBack }: InviteMemberFormProps) => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                 required
+                disabled={isGroupFull}
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold"
-              disabled={inviteMember.isPending || members.length >= group.max_members}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={inviteMember.isPending || isGroupFull || !email.trim()}
             >
               <UserPlus className="w-4 h-4 mr-2" />
-              {inviteMember.isPending ? 'Sending Invite...' : 'Send Invitation'}
+              {inviteMember.isPending ? 'Sending Invite...' : 
+               isGroupFull ? 'Group is Full' : 'Send Invitation'}
             </Button>
           </form>
+
+          {isGroupFull && (
+            <p className="text-yellow-400 text-sm mt-2 text-center">
+              This group has reached its maximum capacity
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -87,7 +107,9 @@ const InviteMemberForm = ({ group, onBack }: InviteMemberFormProps) => {
           <CardTitle className="text-white">Current Members</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {members.length === 0 ? (
+          {membersLoading ? (
+            <p className="text-gray-400 text-center py-4">Loading members...</p>
+          ) : members.length === 0 ? (
             <p className="text-gray-400 text-center py-4">No members yet</p>
           ) : (
             members.map((member) => (
