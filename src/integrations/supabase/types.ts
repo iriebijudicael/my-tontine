@@ -9,7 +9,121 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      group_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          group_id: string
+          id: string
+          invited_by: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          group_id: string
+          id?: string
+          invited_by: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          group_id?: string
+          id?: string
+          invited_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invitations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          email: string | null
+          group_id: string
+          id: string
+          invited_at: string
+          invited_by: string
+          joined_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          email?: string | null
+          group_id: string
+          id?: string
+          invited_at?: string
+          invited_by: string
+          joined_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          email?: string | null
+          group_id?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string
+          joined_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          contribution_amount: number
+          created_at: string
+          created_by: string
+          id: string
+          max_members: number
+          name: string
+          payment_frequency: string
+          payout_schedule: string
+          updated_at: string
+        }
+        Insert: {
+          contribution_amount: number
+          created_at?: string
+          created_by: string
+          id?: string
+          max_members: number
+          name: string
+          payment_frequency: string
+          payout_schedule: string
+          updated_at?: string
+        }
+        Update: {
+          contribution_amount?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          max_members?: number
+          name?: string
+          payment_frequency?: string
+          payout_schedule?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

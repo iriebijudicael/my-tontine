@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,9 +15,15 @@ import {
   Settings
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import GroupsList from "@/components/GroupsList";
+import CreateGroupForm from "@/components/CreateGroupForm";
+import EditGroupForm from "@/components/EditGroupForm";
+import InviteMemberForm from "@/components/InviteMemberForm";
+import { Group } from "@/types/group";
 
 const Dashboard = () => {
   const [currentView, setCurrentView] = useState("groups");
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const navigate = useNavigate();
 
   const members = [
@@ -64,7 +69,7 @@ const Dashboard = () => {
     { user: "Noah Thompson", action: "paid $500", date: "July 1, 2024" },
   ];
 
-  const renderGroupDetails = () => (
+  const renderGroupDetails = (group?: Group) => (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -77,7 +82,7 @@ const Dashboard = () => {
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-2xl font-bold text-white">Tontine Group</h1>
+          <h1 className="text-2xl font-bold text-white">{group?.name || "Tontine Group"}</h1>
         </div>
       </div>
 
@@ -88,7 +93,7 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold text-white mb-2">Group Details</h3>
             <div className="flex items-center justify-center gap-2 mb-4">
               <Users className="w-5 h-5 text-green-400" />
-              <span className="text-2xl font-bold text-white">$5,000</span>
+              <span className="text-2xl font-bold text-white">${group?.contribution_amount || "5,000"}</span>
             </div>
             <p className="text-gray-400">Total Pool</p>
             <p className="text-sm text-gray-500">Next payout: July 15, 2024</p>
@@ -260,77 +265,6 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderCreateGroup = () => (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => setCurrentView("groups")}
-          className="text-white hover:bg-gray-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <h1 className="text-2xl font-bold text-white">Create Group</h1>
-      </div>
-
-      <Card className="bg-gray-800 border-gray-700">
-        <CardContent className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Group Name</label>
-            <input 
-              type="text" 
-              placeholder="Group name"
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Contribution Amount</label>
-            <input 
-              type="number" 
-              placeholder="Amount"
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Payment Frequency</label>
-            <select className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white">
-              <option value="">Select frequency</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Payout Schedule</label>
-            <select className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white">
-              <option value="">Select schedule</option>
-              <option value="rotating">Rotating</option>
-              <option value="random">Random</option>
-              <option value="bidding">Bidding</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Group Size</label>
-            <input 
-              type="number" 
-              placeholder="Number of members"
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
-            />
-          </div>
-
-          <Button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold mt-6">
-            Create Group
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-green-900">
       <div className="container mx-auto px-4 py-6 max-w-md">
@@ -340,10 +274,45 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        {currentView === "groups" && renderGroupDetails()}
+        {currentView === "groups" && (
+          <GroupsList
+            onCreateGroup={() => setCurrentView("create")}
+            onEditGroup={(group) => {
+              setSelectedGroup(group);
+              setCurrentView("edit");
+            }}
+            onViewGroup={(group) => {
+              setSelectedGroup(group);
+              setCurrentView("group-details");
+            }}
+            onInviteMembers={(group) => {
+              setSelectedGroup(group);
+              setCurrentView("invite");
+            }}
+          />
+        )}
+        {currentView === "create" && (
+          <CreateGroupForm
+            onBack={() => setCurrentView("groups")}
+            onSuccess={() => setCurrentView("groups")}
+          />
+        )}
+        {currentView === "edit" && selectedGroup && (
+          <EditGroupForm
+            group={selectedGroup}
+            onBack={() => setCurrentView("groups")}
+            onSuccess={() => setCurrentView("groups")}
+          />
+        )}
+        {currentView === "invite" && selectedGroup && (
+          <InviteMemberForm
+            group={selectedGroup}
+            onBack={() => setCurrentView("groups")}
+          />
+        )}
+        {currentView === "group-details" && renderGroupDetails(selectedGroup)}
         {currentView === "payments" && renderPaymentStatus()}
         {currentView === "schedule" && renderPayoutSchedule()}
-        {currentView === "create" && renderCreateGroup()}
 
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700">
@@ -390,16 +359,6 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
-
-        {/* Floating Create Button */}
-        {currentView === "groups" && (
-          <Button 
-            onClick={() => setCurrentView("create")}
-            className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 shadow-lg"
-          >
-            <Plus className="w-6 h-6" />
-          </Button>
-        )}
       </div>
     </div>
   );
